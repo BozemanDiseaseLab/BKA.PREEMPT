@@ -11,7 +11,11 @@ soft.max.clean <- function(row_start_of_data, file_path, num_of_time_points)
 {
   library(tidyverse)
   library(readxl)
-  data <- readxl::read_excel(file_path, col_names = FALSE, skip = row_start_of_data-1)
+  data <- readxl::read_excel(file_path, col_names = FALSE)
+  index <- which(grepl(pattern = "Time", unlist(data[,1]))== TRUE)
+  data <- data[-c(0:index), ]
+  data <- data[,1:14]
+  
   wells <- readxl::read_excel(file_path, col_names = FALSE, sheet = 2)
 
   colnames(data) <- c("time", "temp_c", "col_1", "col_2", "col_3","col_4","col_5","col_6","col_7","col_8","col_9","col_10","col_11","col_12")
