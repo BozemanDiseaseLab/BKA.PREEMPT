@@ -64,8 +64,8 @@ soft.max.clean <- function(row_start_of_data, file_path, num_of_time_points)
 
   data.tidy.join <- full_join(data.tidy, wells.tidy)
   #add in experimental metadata
-  data.tidy.join$bacteria <- metadata[3,3]
-  data.tidy.join$experiment_id <- paste(metadata[1,3], metadata[2,3], sep = "_")
+  data.tidy.join$bacteria = rep(as.character(metadata[3,3]),nrow(data.tidy.join)) 
+  data.tidy.join$experiment_id <- rep(as.character(paste(metadata[1,3], metadata[2,3], sep = "_")), nrow(data.tidy.join))
   
   return(data.tidy.join)
 }
