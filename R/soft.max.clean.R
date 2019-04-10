@@ -7,7 +7,7 @@
 #' @examples
 #' soft.max.clean
 
-soft.max.clean <- function(row_start_of_data, file_path, num_of_time_points)
+soft.max.clean <- function(file_path, num_of_time_points)
 {
   library(tidyverse)
   library(readxl)
