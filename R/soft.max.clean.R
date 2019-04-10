@@ -17,7 +17,9 @@ soft.max.clean <- function(row_start_of_data, file_path, num_of_time_points)
   data <- data[,1:14]
   
   wells <- readxl::read_excel(file_path, col_names = FALSE, sheet = 2)
-
+  #load in experimental 'metadata'
+  metadata <- readxl::read_excel(file_path, col_names = FALSE, sheet = 3)
+  
   colnames(data) <- c("time", "temp_c", "col_1", "col_2", "col_3","col_4","col_5","col_6","col_7","col_8","col_9","col_10","col_11","col_12")
 
   if(is.na(num_of_time_points))
@@ -61,6 +63,9 @@ soft.max.clean <- function(row_start_of_data, file_path, num_of_time_points)
     gather(key=column, value = sample, 1:12)
 
   data.tidy.join <- full_join(data.tidy, wells.tidy)
-
+  #add in experimental metadata
+  data.tidy.join$bacteria <- metadata[3,3]
+  data.tidy.join$experiment_id <- paste(metadata[1,3], metadata[2,3], sep = "_")
+  
   return(data.tidy.join)
 }
