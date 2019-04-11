@@ -1,7 +1,8 @@
-
+source('R/soft.max.clean.R')
 file_path = '~/Box Sync/Research NSF Bat1Health Collaboration/bat_immunoassays/'
 file.list <- list.files(file_path, pattern = '.xlsx')
 file.list
+
 
 for (i in 1:length(file.list))
 {
@@ -13,12 +14,8 @@ dfs <- Filter(function(x) is(x, "data.frame"), mget(ls()))
 bka.merge <- do.call(rbind, dfs)
 rm(list=(ls()[ls()!="bka.merge"]))
 
-x <- bka.merge %>%
- filter(measure == 'Sample#')
-
 bka.merge$sample <- tolower(bka.merge$sample)
 bka.merge$sample <- gsub(" ", "", bka.merge$sample)
-
 
 bka.merge %>%
   dplyr::filter(grepl(pattern='edta', x=sample)) %>%
@@ -26,11 +23,11 @@ bka.merge %>%
   filter(sample != 'Blank') %>%
   ggplot() +
   geom_line(aes(x=time, y= as.numeric(measure), group = well, col = experiment_id)) +
-  ylim(.5,2)+
+  ylim(.5,2.5)+
   facet_grid(experiment_id~sample) 
 
 bka.merge %>%
-  filter(experiment_id == 'pbsonly') %>%
+  filter(sample != 'blank') %>%
   mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
   #dplyr::filter(grepl(pattern='edta|bacteriaonly', x=sample)) %>%
   #dplyr::filter(experiment_id == '1.30.19_Evelyn Benson') %>%
@@ -39,52 +36,25 @@ bka.merge %>%
   ggplot(aes(x=time, y= as.numeric(measure))) +
   geom_point(aes(group = well, col = experiment_id)) +
   geom_smooth(aes(group = experiment_id, col = experiment_id), method = 'loess') +
-  ylim(.5,2)+
-  xlim(0,.8)+
+  ylim(.9,2)+
+  xlim(0,.6)+
   facet_grid(bacteria~sample)
 
-bka.merge %>%
-  filter(experiment_id == '1.29.19_Evelyn Benson') %>%
-  mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
-  #dplyr::filter(grepl(pattern='edta|bacteriaonly', x=sample)) %>%
-  #dplyr::filter(experiment_id == '1.30.19_Evelyn Benson') %>%
-  unite(well, c(which_row, column)) %>%
-  filter(sample != 'Blank') %>%
-  ggplot(aes(x=time, y= as.numeric(measure))) +
-  geom_point(aes(group = well, col = experiment_id)) +
-  geom_smooth(aes(group = experiment_id, col = experiment_id), method = 'loess') +
-  ylim(.5,2.5)+
-  xlim(0,.8)+
-  facet_wrap(bacteria~sample)
-
-bka.merge %>%
-  #filter(experiment_id == '1.29.19_Evelyn Benson') %>%
-  #mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
-  #dplyr::filter(grepl(pattern='edta|bacteriaonly', x=sample)) %>%
-  #dplyr::filter(experiment_id == '1.30.19_Evelyn Benson') %>%
-  unite(well, c(which_row, column)) %>%
-  filter(sample != 'Blank') %>%
-  ggplot(aes(x=time, y= as.numeric(measure))) +
-  geom_point(aes(group = well, col = experiment_id)) +
-  geom_smooth(aes(group = experiment_id, col = experiment_id), method = 'loess') +
-  ylim(.5,2.5)+
-  xlim(0,.8)+
-  facet_grid(bacteria~sample)
+# bka.merge %>%
+#   filter(experiment_id == '1.29.19_Evelyn Benson') %>%
+#   mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
+#   #dplyr::filter(grepl(pattern='edta|bacteriaonly', x=sample)) %>%
+#   #dplyr::filter(experiment_id == '1.30.19_Evelyn Benson') %>%
+#   unite(well, c(which_row, column)) %>%
+#   filter(sample != 'Blank') %>%
+#   ggplot(aes(x=time, y= as.numeric(measure))) +
+#   geom_point(aes(group = well, col = experiment_id)) +
+#   geom_smooth(aes(group = experiment_id, col = experiment_id), method = 'loess') +
+#   ylim(.5,2.5)+
+#   xlim(0,.8)+
+#   facet_wrap(bacteria~sample)
 
 #first lets look only at inter and intra experiment variability 
-
-bka.merge %>%
-  #filter(experiment_id == '1.29.19_Evelyn Benson') %>%
-  dplyr::filter(grepl(pattern='bacteriaonly', x=sample)) %>%
-  #dplyr::filter(experiment_id == '1.30.19_Evelyn Benson') %>%
-  unite(well, c(which_row, column)) %>%
-  filter(sample != 'Blank') %>%
-  ggplot(aes(x=time, y= as.numeric(measure))) +
-  geom_point(aes(group = well, col = experiment_id)) +
-  geom_smooth(aes(group = experiment_id, col = experiment_id), method = 'loess') +
-  ylim(.5,2.5)+
-  xlim(0,.8)+
-  facet_grid(bacteria~experiment_id)
 
 bka.merge <- bka.merge %>%
   mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
@@ -105,12 +75,11 @@ for(i in 1:length(unique(bka.merge$sample)))
   tryCatch({print(anova(lm2))}, error = function(e){})
 }
 
-
 tp12 <- bka.merge[bka.merge$time == 0.5, ]
 tp12 <- tp12[tp12$bacteria == 'E.coli', ]
-
 tp12 %>% 
   ggplot(aes( experiment_id, as.numeric(measure))) +
+  geom_hline(yintercept = 0 , color = 'red', size = 1, alpha = .5) +
   geom_boxplot() +
   geom_jitter(alpha =.5) +
   facet_wrap(~sample)
@@ -118,21 +87,69 @@ tp12 %>%
 #..................................
 rm(list=(ls()[ls()!="bka.merge"]))
 source('R/control.ratio.data.R')
+source('R/control.ratio.data2.R')
+
 ratio <- control.ratio.data(bka.merge, positive.control = 'bacteriaonly')
+ratio2 <- control.ratio.data2(bka.merge, positive.control = 'bacteriaonly')
+  
+ratio <- left_join(ratio, ratio2[,c('sample', "experiment_id", "time.t1_12", "bacteria", "deltaratio","deltaratio.var")], by = c('sample', "experiment_id", "time.t1_12", "bacteria"))
 
-ratio %>%
+#https://statmd.wordpress.com/2013/08/04/the-expectation-of-the-ratio-of-two-random-variables/
+
+# E(X)^2  / E(Y)^2  * (Var(X)/E(X)^2) - 2 * Cov(X/Y)/ (E(X)E(Y) + Var(Y)/E(Y)^2)
+
+tp12 <- ratio[ratio$time.t1_12 == 0.5, ]
+tp12 <- tp12[tp12$bacteria == 'E.coli', ]
+
+tp12 %>% 
+  ggplot(aes(experiment_id, as.numeric(deltaratio.x))) +
+  geom_hline(yintercept = 0 , color = 'red', size = 1, alpha =.5) +
+  # geom_boxplot(aes(lower = deltaratio.y-deltaratio.var,
+  #                 ymin=deltaratio.y-sqrt(deltaratio.var),
+  #                 middle = deltaratio.y, 
+  #                 ymax=deltaratio.y+sqrt(deltaratio.var),
+  #                 upper = deltaratio.y+(deltaratio.var)
+  #                 ), width=.2,
+  #               stat = 'identity') +
+  geom_boxplot() + 
+  geom_jitter(alpha =.5) +
+  facet_wrap(~sample) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_errorbar(aes(ymin=deltaratio.y-sqrt(deltaratio.var), ymax=deltaratio.y+sqrt(deltaratio.var)), width=.2,
+                position=position_dodge(.9)) 
+
+
+
+x <- tp12 %>%
+  filter(experiment_id == '4.3.19_Evelyn Benson') %>%
+  filter(sample.sample == 'bacteriaonly')
+  
+
+
+control.ratio.data2(bka.merge, positive.control = 'pbsonly') %>%
   filter(bacteria == 'E.coli') %>%
-  ggplot(aes(x=time.y, y = log(deltaratio), group  = experiment_id, col = experiment_id)) +
+  mutate(sample = ifelse(grepl('bat',sample.sample),'bat serum', sample.sample)) %>%
+  mutate(group = paste(sample.sample,experiment_id)) %>%
+  ggplot(aes(x=time.t1_12, y = mean.sample, group  = group, col = experiment_id)) +
+  geom_ribbon(aes(x=time.t1_12, ymax = mean.sample + sd.sample, ymin = mean.sample - sd.sample), alpha =.4) +
   geom_line() +
-  facet_wrap(~sample.y)
+  facet_wrap(~sample)
 
-ratio <- control.ratio.data(bka.merge, positive.control = 'pbsonly')
-
-ratio %>%
-  ggplot(aes(x=time.y, y = log(deltaratio), group  = experiment_id, col = experiment_id)) +
+control.ratio.data2(bka.merge, positive.control = 'bacteriaonly')%>%
+  filter(bacteria == 'E.coli') %>%
+  mutate(sample = ifelse(grepl('bat',sample.sample),'bat serum', sample.sample)) %>%
+  mutate(group = paste(sample.sample,experiment_id)) %>%
+  #filter(time.t1_12 == 0 |time.t1_12 ==0.50000000) %>%
+  ggplot(aes(x=time.t1_12, y = deltaratio, group  = group, col = experiment_id)) +
   geom_line() +
-  facet_grid(sample.y ~bacteria)
+  facet_wrap(~sample)
 
-
+control.ratio.data2(bka.merge, positive.control = 'pbsonly')%>%
+filter(bacteria == 'E.coli') %>%
+  mutate(sample = ifelse(grepl('bat',sample.sample),'bat serum', sample.sample)) %>%
+  mutate(group = paste(sample.sample,experiment_id)) %>%
+  ggplot(aes(x=time.t1_12, y = (deltaratio), group  = group, col = experiment_id)) +
+  geom_line() +
+  facet_wrap(~sample)
 
 
