@@ -111,14 +111,12 @@ tp12 %>%
   #                 upper = deltaratio.y+(deltaratio.var)
   #                 ), width=.2,
   #               stat = 'identity') +
-  geom_boxplot() + 
+  geom_boxplot(coef = 0) + 
   geom_jitter(alpha =.5) +
   facet_wrap(~sample) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   geom_errorbar(aes(ymin=deltaratio.y-sqrt(deltaratio.var), ymax=deltaratio.y+sqrt(deltaratio.var)), width=.2,
                 position=position_dodge(.9)) 
-
-
 
 x <- tp12 %>%
   filter(experiment_id == '4.3.19_Evelyn Benson') %>%
