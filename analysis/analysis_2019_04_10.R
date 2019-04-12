@@ -99,31 +99,57 @@ ratio <- left_join(ratio, ratio2[,c('sample', "experiment_id", "time.t1_12", "ba
 # E(X)^2  / E(Y)^2  * (Var(X)/E(X)^2) - 2 * Cov(X/Y)/ (E(X)E(Y) + Var(Y)/E(Y)^2)
 
 tp12 <- ratio[ratio$time.t1_12 == 0.5, ]
-tp12 <- tp12[tp12$bacteria == 'E.coli', ]
+#tp12 <- tp12[tp12$bacteria == 'S.aureus', ]
 
 tp12 %>% 
-  ggplot(aes(experiment_id, as.numeric(deltaratio.x))) +
-  geom_hline(yintercept = 0 , color = 'red', size = 1, alpha =.5) +
-  # geom_boxplot(aes(lower = deltaratio.y-deltaratio.var,
-  #                 ymin=deltaratio.y-sqrt(deltaratio.var),
-  #                 middle = deltaratio.y, 
-  #                 ymax=deltaratio.y+sqrt(deltaratio.var),
-  #                 upper = deltaratio.y+(deltaratio.var)
-  #                 ), width=.2,
-  #               stat = 'identity') +
-  geom_boxplot(coef = 0) + 
-  geom_jitter(alpha =.5) +
+  filter(grepl('bat', sample)) %>%
+  ggplot(aes(bacteria, as.numeric(deltaratio.x, col = bacteria))) +
+  geom_hline(yintercept = 0 , color = 'purple', size = 1, alpha =.5) +
+  geom_boxplot(aes(col = bacteria), coef = 0) + 
+  geom_jitter(aes(col = bacteria)) +
   facet_wrap(~sample) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  geom_errorbar(aes(ymin=deltaratio.y-sqrt(deltaratio.var), ymax=deltaratio.y+sqrt(deltaratio.var)), width=.2,
-                position=position_dodge(.9)) 
+  geom_errorbar(aes(col = bacteria, ymin=deltaratio.y-sqrt(deltaratio.var), ymax=deltaratio.y+sqrt(deltaratio.var)), width=.2,
+                position=position_dodge(.9))  +
+  facet_grid(~sample) +
+  ylab("Percent Killing Compared to Positive Control") 
+
+tp12 %>% 
+  filter(grepl('mouse', sample)) %>%
+  mutate(experiment = paste(experiment_id, bacteria)) %>%
+  ggplot(aes(experiment, as.numeric(deltaratio.x, col = bacteria))) +
+  geom_hline(yintercept = 0 , color = 'purple', size = 1, alpha =.5) +
+  geom_boxplot(aes(col = bacteria), coef = 0) + 
+  geom_jitter(aes(col = bacteria)) +
+  facet_wrap(~sample) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_errorbar(aes(col = bacteria, ymin=deltaratio.y-sqrt(deltaratio.var), ymax=deltaratio.y+sqrt(deltaratio.var)), width=.2,
+                position=position_dodge(.9))  +
+  #facet_grid(sample~bacteria) +
+  ylab("Percent Killing Compared to Positive Control") 
+
+tp12 %>% 
+  filter( sample == 'edta' | sample == 'bacteriaonly') %>%
+  ggplot(aes(experiment_id, as.numeric(deltaratio.x, col = bacteria))) +
+  geom_hline(yintercept = 0 , color = 'purple', size = 1, alpha =.5) +
+  geom_boxplot(aes(col = bacteria), coef = 0) + 
+  geom_jitter(aes(col = bacteria)) +
+  facet_wrap(~sample) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_errorbar(aes(col = bacteria, ymin=deltaratio.y-sqrt(deltaratio.var), ymax=deltaratio.y+sqrt(deltaratio.var)), width=.2,
+                position=position_dodge(.9))  +
+  facet_grid(~sample) +
+  ylab("Percent Killing Compared to Positive Control") 
+
+
+
+
+
 
 x <- tp12 %>%
   filter(experiment_id == '4.3.19_Evelyn Benson') %>%
   filter(sample.sample == 'bacteriaonly')
   
-
-
 control.ratio.data2(bka.merge, positive.control = 'pbsonly') %>%
   filter(bacteria == 'E.coli') %>%
   mutate(sample = ifelse(grepl('bat',sample.sample),'bat serum', sample.sample)) %>%
