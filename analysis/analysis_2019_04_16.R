@@ -35,8 +35,8 @@ df <- ratio %>%
   tidyr::spread(time.t1_12, deltaratio) %>%
   filter(bacteria == 'S.aureus')
 
-plot(df$`0.0833333333333333`, df$`0.5`)
-plot(df$`0.416666666666667`, df$`0.5`)
+plot(df$`0.0833333333333333`, df$`0.5`) # hour 2 vs 12 
+plot(df$`0.416666666666667`, df$`0.5`) # 
 
 
 df1 <- df[,c(4:9)]
@@ -62,3 +62,4 @@ cor <- cor(df1, use="complete.obs")
 levelplot((cor))
 cov <- cov(df1, use="complete.obs")
 levelplot((cov))
+
