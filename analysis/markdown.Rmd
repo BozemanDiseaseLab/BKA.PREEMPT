@@ -1,0 +1,266 @@
+---
+title: "bka_analysis"
+output: html_document
+---
+
+``` {r,include = FALSE}
+
+source('/Users/dancrowley/BKA.PREEMPT/R/soft.max.clean.R')
+file_path = '~/Box Sync/Research NSF Bat1Health Collaboration/bat_immunoassays/'
+file.list <- list.files(file_path, pattern = '.xlsx')
+file.list
+
+
+for (i in 1:length(file.list))
+{
+  file <- paste(file_path, file.list[i], sep = "")
+  assign(file.list[i], soft.max.clean(file_path = file, num_of_time_points = 7))
+}
+
+dfs <- Filter(function(x) is(x, "data.frame"), mget(ls()))
+bka.merge <- do.call(rbind, dfs)
+rm(list=(ls()[ls()!="bka.merge"]))
+
+bka.merge$sample <- tolower(bka.merge$sample)
+bka.merge$sample <- gsub(" ", "", bka.merge$sample)
+
+bka.merge$measure <- as.numeric(bka.merge$measure)
+
+```
+
+#BKA Results
+
+##Bacteria Only
+###Data Untransformed
+``` {r,echo = FALSE}
+bka.merge %>%
+  filter(sample == 'bacteriaonly') %>%
+  unite(well, c(which_row, column)) %>%
+  ggplot(aes(x=time, y= (as.numeric(measure)))) +
+  #ggplot(aes(x=time, y= log(as.numeric(measure)))) +
+  #ggplot(aes(x=time, y= boot::inv.logit(as.numeric(measure)))) +
+  geom_point(aes(group = well, col = bacteria)) +
+  geom_line(aes(group = well, col = bacteria)) +
+  #ylim(.9,2)+
+  #xlim(0,.6)+
+  facet_wrap(~experiment_id)
+
+```
+
+### Log Transformed
+``` {r,echo = FALSE}
+bka.merge %>%
+  filter(sample == 'bacteriaonly') %>%
+  unite(well, c(which_row, column)) %>%
+  #ggplot(aes(x=time, y= (as.numeric(measure)))) +
+  ggplot(aes(x=time, y= log(as.numeric(measure)))) +
+  #ggplot(aes(x=time, y= boot::inv.logit(as.numeric(measure)))) +
+  geom_point(aes(group = well, col = bacteria)) +
+  geom_line(aes(group = well, col = bacteria)) +
+  #ylim(.9,2)+
+  #xlim(0,.6)+
+  facet_wrap(~experiment_id)
+
+```
+
+### inverse Logit Transformed
+``` {r,echo = FALSE}
+bka.merge %>%
+  filter(sample == 'bacteriaonly') %>%
+  unite(well, c(which_row, column)) %>%
+  #ggplot(aes(x=time, y= (as.numeric(measure)))) +
+  #ggplot(aes(x=time, y= log(as.numeric(measure)))) +
+  ggplot(aes(x=time, y= boot::inv.logit(as.numeric(measure)))) +
+  geom_point(aes(group = well, col = bacteria)) +
+  geom_line(aes(group = well, col = bacteria)) +
+  #ylim(.9,2)+
+  #xlim(0,.6)+
+  facet_wrap(~experiment_id)
+
+```
+
+##Repliace Variance As A Function of Time
+
+###Bacteria Only  (includes staph and e.coli)
+``` {r,echo = FALSE}
+
+bka.merge %>%
+  mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
+  filter(sample == 'bacteriaonly') %>%
+  #filter(bacteria == 'E.coli') %>%
+  unite(well, c(which_row, column)) %>%
+  unite(experiment_id, c(sample, experiment_id)) %>%
+  group_by(time, experiment_id, bacteria) %>%
+  summarise(variance = var(measure)) %>%
+  ggplot() +
+  geom_line(aes(x = time, y = variance, group = experiment_id, col= experiment_id)) #+
+  #theme(legend.position="none") #+
+  #facet_wrap(~sample, scales = 'free', ncol= 2)
+```
+
+##All Other Samples
+
+Each color is a unique sample type and experiment
+The Y axis is the variance for the replicates. 
+My conclusion: highest variance at the first reading and the final readings. 
+We see this in the time series data in the bacteria only samples, however this suggests the same pattern exists for all sample types. 
+
+###E.Coli First
+
+``` {r,echo = FALSE}
+
+bka.merge %>%
+  mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
+  filter(sample != 'blank') %>%
+  filter(bacteria == 'E.coli') %>%
+  filter(sample != 'bacteriaonly') %>%
+  unite(well, c(which_row, column)) %>%
+  unite(experiment_id, c(sample, experiment_id)) %>%
+  group_by(time, experiment_id, bacteria) %>%
+  summarise(variance = var(measure)) %>%
+  ggplot() +
+  geom_line(aes(x = time, y = variance, group = experiment_id, col= experiment_id)) +
+  theme(legend.position="none") +
+  geom_smooth(aes(x = time, y = variance), method = 'loess') #+
+
+  #facet_wrap(~sample, scales = 'free', ncol= 2)
+```
+
+##Staph Next
+``` {r,echo = FALSE}
+
+bka.merge %>%
+  mutate(sample = ifelse(grepl('bat',sample),'bat serum', sample)) %>%
+  filter(sample != 'blank') %>%
+  filter(bacteria == 'S.aureus') %>%
+  filter(sample != 'bacteriaonly') %>%
+  unite(well, c(which_row, column)) %>%
+  unite(experiment_id, c(sample, experiment_id)) %>%
+  group_by(time, experiment_id, bacteria) %>%
+  summarise(variance = var(measure)) %>%
+  ggplot() +
+  geom_line(aes(x = time, y = variance, group = experiment_id, col= experiment_id)) +
+  theme(legend.position="none") +
+  geom_smooth(aes(x = time, y = variance), method = 'loess') #+
+
+  #facet_wrap(~sample, scales = 'free', ncol= 2)
+```
+
+
+
+
+##Box Plot of Samples
+### E. Coli Samples Only
+
+``` {r,echo = FALSE}
+
+tp12 <- bka.merge[bka.merge$time == 0.5, ]
+tp12 <- tp12[tp12$bacteria == 'E.coli', ]
+tp12 <- tp12[tp12$sample %in% c('bacteriaonly','batserum', 'mouseserum'), ]
+
+tp12 %>% 
+  ggplot(aes( experiment_id, as.numeric(measure))) +
+  geom_hline(yintercept = 0 , color = 'red', size = 1, alpha = .5) +
+  geom_boxplot() +
+  geom_jitter(alpha =.5) +
+  facet_wrap(~sample)  +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+
+```
+
+
+##Box Plot of Samples
+###Staph. Aureus Samples Only
+
+``` {r,echo = FALSE}
+
+tp12 <- bka.merge[bka.merge$time == 0.5, ]
+tp12 <- tp12[tp12$bacteria == 'S.aureus', ]
+tp12 <- tp12[tp12$sample %in% c('bacteriaonly','batserum', 'mouseserum'), ]
+
+tp12 %>% 
+  ggplot(aes( experiment_id, as.numeric(measure))) +
+  geom_hline(yintercept = 0 , color = 'red', size = 1, alpha = .5) +
+  geom_boxplot() +
+  geom_jitter(alpha =.5) +
+  facet_wrap(~sample)  +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+
+```
+
+
+#What is an outlier? 
+## Look at one sampling point only, lets choose 6 hours 
+``` {r,echo = FALSE}
+
+t.6 <- bka.merge %>%
+  filter(time == .25) 
+
+t.6 <- t.6 %>%
+  unite(well, c(which_row, column)) %>%
+  group_by(sample, bacteria, experiment_id) %>%
+  summarise(mean = mean(measure), var = var(measure))
+  
+
+hist(t.6$var, breaks = 50)
+mean(t.6$var)
+var(t.6$var)
+
+x <- t.6 %>%
+  filter( var  >.1)
+
+bka.merge %>%
+  filter(sample == x$sample) %>%
+  filter(bacteria == x$bacteria) %>%
+  filter(experiment_id == x$experiment_id) %>%
+  unite(well, c(which_row, column)) %>%
+  ggplot(aes(x=time, y= (as.numeric(measure)))) +
+  #ggplot(aes(x=time, y= log(as.numeric(measure)))) +
+  #ggplot(aes(x=time, y= boot::inv.logit(as.numeric(measure)))) +
+  geom_point(aes(group = well, col = bacteria)) +
+  geom_line(aes(group = well, col = bacteria)) +
+  #ylim(.9,2)+
+  #xlim(0,.6)+
+  facet_wrap(~experiment_id)
+
+```
+
+
+#Correlation of Time Point Delta Ratios
+```{r, echo = FALSE}
+source('/Users/dancrowley/BKA.PREEMPT/R/control.ratio.data.R')
+ratio <- control.ratio.data(bka.merge, positive.control = 'bacteriaonly')
+
+#remove the samples in X, we know those contain samples with a huge amount of variance
+
+ratio <- ratio %>%
+  filter(sample != x$sample) %>%
+  filter(bacteria != x$bacteria) %>%
+  filter(experiment_id != x$experiment_id) 
+
+df <- ratio %>% 
+  unite(well, c(which_row, column)) %>%
+  filter(sample != 'bacteriaonly') %>%
+  ungroup() %>%
+  select(sample, well, bacteria, time.t1_12, deltaratio, experiment_id) %>%
+  filter(!is.na(deltaratio)) %>%
+  group_by(sample, well, bacteria, experiment_id, time.t1_12) %>%
+  summarise(deltaratio= mean(deltaratio)) %>%
+  tidyr::spread(time.t1_12, deltaratio)
+
+df1 <- df[,c(5:10)]
+colnames(df1) <- seq(1,6,by =1)
+cor <- cor(df1, use="complete.obs")
+lattice::levelplot((cor))
+
+```
+
+#Covariance of Time Point Delta Ratios
+```{r, echo = FALSE}
+
+cov <- cov(df1, use="complete.obs")
+lattice::levelplot((cov))
+```
+
+
+
