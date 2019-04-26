@@ -21,6 +21,10 @@ soft.max.clean <- function(file_path, num_of_time_points)
   index <- which(grepl(pattern = "Time", unlist(data[,1]))== TRUE)
   #every row before  we first see the word "time', delete 
   data <- data[-c(0:index), ]
+  #now we need to grab the end
+  index2 <- which(grepl(pattern = "~End", unlist(data[,1]))== TRUE)[[1]]
+  data <- data[-c(index2:nrow(data)), ]
+  
   #only grabb the first 14 columns, everything else is GAAHHBAGE, to quote marky mark 
   data <- data[,1:14]
   
@@ -39,19 +43,26 @@ soft.max.clean <- function(file_path, num_of_time_points)
     num_of_time_points <- nrow(data[!is.na(data$time), ])
 
   }
-  #each timepoint is associated with 9 rows, so multiply 9* the number of time points to trim the end of the dataset
-  end_of_data <- 9*num_of_time_points
-  #trim the blank rows at the end of the data
-  data <- data[c(0:end_of_data),]
+  #4/26/19:  we can get rid of these functions we think
+
+  #okay betches, lifes about to get h@rD 
+  #find the indexes where the values are  NA. this includes those dumb gaps AND the end of the data
+  #the end of the data, those indexes should be 1 apart (thus the 'diff'  function)
+  #the gaps should be 9 apart. 
+  #okay wait this was so  stupid. we could have just got rid of the fucking blank  rows. fuck me
+  is.na.data <-which(is.na(data$col_1))
+  index <- which(diff(is.na.data) == 1)[[1]]
+  end_of_data <- is.na.data[[index]]
+  data <- data[c(0:(end_of_data-1)),]
 
   #remove blanks, which exist between every time point in the softmax data. stupid goddamn softmax
   blanks <- seq(9,end_of_data,by=9)
   data <- data[-c(blanks),]
 
   #fix time variables
-  times <-  seq(1,end_of_data-9,by=8)
-  index <- 0
 
+  times <-  seq(1,nrow(data)-8,by=8)
+  index <- 0
   #i  honestly do not remember what im doing here
   data$time_2 <- NA
   for(i in (times))
@@ -64,7 +75,7 @@ soft.max.clean <- function(file_path, num_of_time_points)
   data$time_2 <- NULL
   data$which_row <- LETTERS[1:8]
 
-  #tidy up the data, putting it into a 'tidy' format. this is the format  we  should use for  the anlayses 
+  #tidy up the data, putting it into a 'tidy' format. this is the format  we  should use for  the analyses 
   data.tidy <- data %>%
     select(-c(temp_c)) %>%
     group_by(time, which_row) %>%
