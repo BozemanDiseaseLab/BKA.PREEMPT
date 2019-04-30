@@ -6,22 +6,12 @@ output: html_document
 ``` {r,include = FALSE}
 
 source('/Users/dancrowley/BKA.PREEMPT/R/soft.max.clean.R')
-file_path = '~/Box Sync/Research NSF Bat1Health Collaboration/bat_immunoassays/Evelyn_Data/'
-file.list <- list.files(file_path, pattern = '.xlsx')
-file.list
+file_path = '~/Box Sync/Research NSF Bat1Health Collaboration/bat_immunoassays/Evelyn_Data/EB023_BKA_S.aureus_ATCC6538.xlsx'
+data <- soft.max.clean(file_path, num_of_time_points = NA)
 
+bka.merge <-  data
 
-for (i in 1:length(file.list))
-{
-  file <- paste(file_path, file.list[i], sep = "")
-  assign(file.list[i], soft.max.clean(file_path = file, num_of_time_points = 7))
-}
-
-dfs <- Filter(function(x) is(x, "data.frame"), mget(ls()))
-bka.merge <- do.call(rbind, dfs)
-rm(list=(ls()[ls()!="bka.merge"]))
-
-bka.merge$sample <- tolower(bka.merge$sample)
+data$sample <- tolower(bka.merge$sample)
 bka.merge$sample <- gsub(" ", "", bka.merge$sample)
 
 bka.merge$measure <- as.numeric(bka.merge$measure)
@@ -33,8 +23,10 @@ bka.merge$measure <- as.numeric(bka.merge$measure)
 ##Bacteria Only
 ###Data Untransformed
 ``` {r,echo = FALSE}
-bka.merge %>%
-  filter(experiment_id == '4.26.19_Evelyn Benson') %>%
+data <- bka.merge %>%
+  filter(experiment_id == '4.26.19_Evelyn Benson') 
+
+data %>%
   unite(well, c(which_row, column)) %>%
   ggplot(aes(x=time, y= (as.numeric(measure)))) +
   #ggplot(aes(x=time, y= log(as.numeric(measure)))) +
@@ -43,7 +35,7 @@ bka.merge %>%
   geom_line(aes(group = well, col = bacteria)) +
   #ylim(.9,2)+
   #xlim(0,.6)+
-  facet_wrap(~experiment_id)
+  facet_grid(~sample)
 
 ```
 
