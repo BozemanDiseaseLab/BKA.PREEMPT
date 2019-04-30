@@ -5,8 +5,8 @@ file.list <- list.files(file_path, pattern = '.xlsx')
 file.list
 
 # Evelyns BKA data for optimizing S aureus concentration and looking at edge effects
-#( plate layout different from usual )
-file <- paste(file_path, 'EB023_BKA_S.aureus_ATCC6538.xlsx', sep = "")
+#(SECOND plate layout: blocks to look at edge effects/dilution)
+file <- paste(file_path, 'EB024_BKA_S.aureus_ATCC6538.xlsx', sep = "")
 data <- soft.max.clean(file_path = file, num_of_time_points = 7)
 
 head(data)
@@ -14,9 +14,9 @@ summary(data)
 names(data)
 
 data %>%
-   unite(well, c(which_row, column)) %>%
+  unite(well, c(which_row, column)) %>%
   ggplot(aes(x=time, y= (as.numeric(measure)))) +
-   geom_point(aes(group = well, col = sample)) +
+  geom_point(aes(group = well, col = sample)) +
   #geom_smooth(aes(group = experiment_id, col = experiment_id), method = 'loess') +
   geom_line(aes(group = well, col = sample)) +
   facet_grid(~sample)
@@ -24,8 +24,8 @@ data %>%
 # calculate dist from edges
 data2 <- data %>%
   mutate(newcol2 = str_replace(column, "col_", "")) %>%
-   mutate(newcol = str_replace_all(which_row, 
-                 c("A" = "1", "B" = "2", "C" = "3", "D" = "4", "H" = "1", "G" = "2", "F" = "3", "E" = "4")) )
+  mutate(newcol = str_replace_all(which_row, 
+                                  c("A" = "1", "B" = "2", "C" = "3", "D" = "4", "H" = "1", "G" = "2", "F" = "3", "E" = "4")) )
 
 data2$newcol2[data2$newcol2 == 7] =  6
 data2$newcol2[data2$newcol2 == 8] =  5
