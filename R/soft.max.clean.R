@@ -37,12 +37,6 @@ soft.max.clean <- function(file_path, num_of_time_points)
   #okay, labels all  the columns 
   colnames(data) <- c("time", "temp_c", "col_1", "col_2", "col_3","col_4","col_5","col_6","col_7","col_8","col_9","col_10","col_11","col_12")
 
-  #figure  out how  many time points are  in the data
-  if(is.na(num_of_time_points))
-  {
-    num_of_time_points <- nrow(data[!is.na(data$time), ])
-
-  }
   #4/26/19:  we can get rid of these functions we think
 
   #okay betches, lifes about to get h@rD 
@@ -50,18 +44,29 @@ soft.max.clean <- function(file_path, num_of_time_points)
   #the end of the data, those indexes should be 1 apart (thus the 'diff'  function)
   #the gaps should be 9 apart. 
   #okay wait this was so  stupid. we could have just got rid of the fucking blank  rows. fuck me
+  rm(index)
+  
   is.na.data <-which(is.na(data$col_1))
+  if(TRUE %in% diff(is.na.data) == 1)
+  {
   index <- which(diff(is.na.data) == 1)[[1]]
   end_of_data <- is.na.data[[index]]
   data <- data[c(0:(end_of_data-1)),]
-
+  }
+  
   #remove blanks, which exist between every time point in the softmax data. stupid goddamn softmax
-  blanks <- seq(9,end_of_data,by=9)
+  blanks <- seq(9,nrow(data),by=9)
   data <- data[-c(blanks),]
 
+  #figure  out how  many time points are  in the data
+  if(is.na(num_of_time_points))
+  {
+    num_of_time_points <- nrow(data[!is.na(data$time), ])
+  }
+  
   #fix time variables
 
-  times <-  seq(1,nrow(data)-8,by=8)
+  times <-  seq(1,nrow(data),by=8)
   index <- 0
   #i  honestly do not remember what im doing here
   data$time_2 <- NA
@@ -90,7 +95,7 @@ soft.max.clean <- function(file_path, num_of_time_points)
     gather(key=column, value = sample, 1:12)
 
   #we have  now joined the raw data with the wells datasheet, which maps up  96 wells plate 
-  data.tidy.join <- full_join(data.tidy, wells.tidy)
+  data.tidy.join <- full_join(data.tidy, wells.tidy, by = c("which_row", "column"))
   #add in experimental metadata, like who ran the assay, the bacteria,  etc. 
   data.tidy.join$bacteria = rep(as.character(metadata[3,3]),nrow(data.tidy.join)) 
   data.tidy.join$experiment_id <- rep(as.character(paste(metadata[1,3], metadata[2,3], sep = "_")), nrow(data.tidy.join))

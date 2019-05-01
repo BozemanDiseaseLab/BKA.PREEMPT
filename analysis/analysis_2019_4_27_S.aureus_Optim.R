@@ -7,7 +7,7 @@ file.list
 # Evelyns BKA data for optimizing S aureus concentration and looking at edge effects
 #(SECOND plate layout: blocks to look at edge effects/dilution)
 file <- paste(file_path, 'EB024_BKA_S.aureus_ATCC6538.xlsx', sep = "")
-data <- soft.max.clean(file_path = file, num_of_time_points = 7)
+data <- soft.max.clean(file_path = file, num_of_time_points = NA)
 
 # SOFT MAX ISNT WORKING 
 data <- data.tidy.join
