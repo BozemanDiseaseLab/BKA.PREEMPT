@@ -5,7 +5,9 @@ output: html_document
 
 ``` {r,include = FALSE}
 
-source('/Users/dancrowley/BKA.PREEMPT/R/soft.max.clean.R')
+wd <- getwd()
+source(paste(wd, '/R/soft.max.clean.R', sep = ''))
+
 file_path = '~/Box Sync/Research NSF Bat1Health Collaboration/bat_immunoassays/Evelyn_Data/EB023_BKA_S.aureus_ATCC6538.xlsx'
 data <- soft.max.clean(file_path, num_of_time_points = NA)
 
