@@ -10,8 +10,6 @@ file <- paste(file_path, 'EB024_BKA_S.aureus_ATCC6538.xlsx', sep = "")
 data <- soft.max.clean(file_path = file, num_of_time_points = NA)
 
 # SOFT MAX ISNT WORKING 
-data <- data.tidy.join
-
 head(data)
 summary(data)
 names(data)
@@ -95,7 +93,7 @@ data2$block[data2$well == "F2"] = "EB_10.5"
 
 
 data2 %>%
-  # filter(well == c( 'A1', A2, A3, A4, A5, A6, B1, C1, D1, "10^4/mL")) %>%
+  filter(sample ==  '10^5/mL') %>%
   # unite(well, c(which_row, column)) %>%
   ggplot(aes(x=time, y= (as.numeric(measure)) )) +
   geom_point(aes(group = well, col = block)) +
