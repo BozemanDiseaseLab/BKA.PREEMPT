@@ -1,5 +1,9 @@
 # source('/Users/dancrowley/BKA.PREEMPT/R/soft.max.clean.R')
-source('/Users/aubrygrad/Desktop/git/BKA.PREEMPT/R/soft.max.clean.R')
+
+wd <- getwd()
+
+source(paste(wd, '/R/soft.max.clean.R', sep = ''))
+
 file_path = '~/Box Sync/Research NSF Bat1Health Collaboration/bat_immunoassays/Evelyn_Data/'
 file.list <- list.files(file_path, pattern = '.xlsx')
 file.list
