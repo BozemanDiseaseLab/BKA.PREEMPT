@@ -10,7 +10,7 @@ file <- paste(file_path, 'EB024_BKA_S.aureus_ATCC6538.xlsx', sep = "")
 data <- soft.max.clean(file_path = file, num_of_time_points = 7)
 
 # SOFT MAX ISNT WORKING 
-
+data <- data.tidy.join
 
 head(data)
 summary(data)
@@ -27,8 +27,8 @@ data %>%
 # calculate dist from edges
 data2 <- data %>%
   mutate(newcol_X = str_replace(column, "col_", "")) %>%
-  mutate(newcol = str_replace_all(which_row, 
-                                  c("A" = "1", "B" = "2", "C" = "3", "D" = "4", "H" = "1", "G" = "2", "F" = "3", "E" = "4")) )
+  mutate(newcol = str_replace_all(which_row, c("A" = "1", "B" = "2", "C" = "3", "D" = "4", 
+                                               "H" = "1", "G" = "2", "F" = "3", "E" = "4")) )
 
 data2$newcol2 <- data2$newcol_X
 data2$newcol2[data2$newcol_X == 7] =  6
