@@ -41,7 +41,6 @@ soft.max.clean <- function(file_path, num_of_time_points)
   if(is.na(num_of_time_points))
   {
     num_of_time_points <- nrow(data[!is.na(data$time), ])
-
   }
   #4/26/19:  we can get rid of these functions we think
 
@@ -50,13 +49,13 @@ soft.max.clean <- function(file_path, num_of_time_points)
   #the end of the data, those indexes should be 1 apart (thus the 'diff'  function)
   #the gaps should be 9 apart. 
   #okay wait this was so  stupid. we could have just got rid of the fucking blank  rows. fuck me
-  is.na.data <-which(is.na(data$col_1))
-  index <- which(diff(is.na.data) == 1)[[1]]
-  end_of_data <- is.na.data[[index]]
-  data <- data[c(0:(end_of_data-1)),]
+  # is.na.data <-which(is.na(data$col_1))
+  # index <- which(diff(is.na.data) == 1)[[1]]
+  # end_of_data <- is.na.data[[index]]
+  # data <- data[c(0:(end_of_data-1)),]
 
   #remove blanks, which exist between every time point in the softmax data. stupid goddamn softmax
-  blanks <- seq(9,end_of_data,by=9)
+  blanks <- seq(9,nrow(data),by=9)
   data <- data[-c(blanks),]
 
   #fix time variables
@@ -90,7 +89,7 @@ soft.max.clean <- function(file_path, num_of_time_points)
     gather(key=column, value = sample, 1:12)
 
   #we have  now joined the raw data with the wells datasheet, which maps up  96 wells plate 
-  data.tidy.join <- full_join(data.tidy, wells.tidy)
+  data.tidy.join <- full_join(data.tidy, wells.tidy, by = c("which_row", "column"))
   #add in experimental metadata, like who ran the assay, the bacteria,  etc. 
   data.tidy.join$bacteria = rep(as.character(metadata[3,3]),nrow(data.tidy.join)) 
   data.tidy.join$experiment_id <- rep(as.character(paste(metadata[1,3], metadata[2,3], sep = "_")), nrow(data.tidy.join))
