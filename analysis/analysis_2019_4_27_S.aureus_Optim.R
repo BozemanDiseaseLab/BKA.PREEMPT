@@ -13,7 +13,6 @@ file.list
 file <- paste(file_path, 'EB024_BKA_S.aureus_ATCC6538.xlsx', sep = "")
 data <- soft.max.clean(file_path = file, num_of_time_points = NA)
 
-# SOFT MAX ISNT WORKING 
 head(data)
 summary(data)
 names(data)
@@ -77,7 +76,7 @@ data2$block = "C"
 
 data2$block[data2$sample == "10^5/mL"] = "I_10.5"
 str(data2$well)
-data2$block[data2$well == "A1"] = "EE_10.5"
+data2$block[data2$well == "A1"] = "EE_10.5" # edge exterior
 data2$block[data2$well == "A2"] = "EE_10.5"
 data2$block[data2$well == "A3"] = "EE_10.5"
 data2$block[data2$well == "A4"] = "EE_10.5"
@@ -87,7 +86,7 @@ data2$block[data2$well == "B1"] = "EE_10.5"
 data2$block[data2$well == "C1"] = "EE_10.5"
 data2$block[data2$well == "D1"] = "EE_10.5"
 
-data2$block[data2$well == "G2"] = "EB_10.5"
+data2$block[data2$well == "G2"] = "EB_10.5" # edge buffer
 data2$block[data2$well == "G3"] = "EB_10.5"
 data2$block[data2$well == "G4"] = "EB_10.5"
 data2$block[data2$well == "G5"] = "EB_10.5"
@@ -102,5 +101,5 @@ data2 %>%
   ggplot(aes(x=time, y= (as.numeric(measure)) )) +
   geom_point(aes(group = well, col = block)) +
   geom_line(aes(group = well, col = block)) +
-  facet_grid(~sample)
+  facet_grid(~block)
 
