@@ -34,6 +34,7 @@ soft.max.clean <- function(file_path, num_of_time_points)
   #load in experimental 'metadata'
   metadata <- readxl::read_excel(file_path, col_names = FALSE, sheet = 3)
   
+  
   #okay, labels all  the columns 
   colnames(data) <- c("time", "temp_c", "col_1", "col_2", "col_3","col_4","col_5","col_6","col_7","col_8","col_9","col_10","col_11","col_12")
 
